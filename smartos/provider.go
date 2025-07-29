@@ -32,6 +32,12 @@ func providerSchema() map[string]*schema.Schema {
 			Required:    true,
 			Description: "User to authenticate with.",
 		},
+		"password": {
+			Type:		schema.TypeString,
+			Optional:	true,
+			Description:"Password for authentication",
+			Sensitive: 	true,
+		},
 	}
 }
 
@@ -56,6 +62,11 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	authMethods := []ssh.AuthMethod{}
 	authMethods = append(authMethods, ssh.PublicKeysCallback(agent.NewClient(agentConnection).Signers))
+
+	password := d.Get("password").(string)
+	if password != "" {
+		authMethods = append(authMethods, ssh.Password(password)) 
+	}
 
 	client := SmartOSClient{
 		hosts:           d.Get("hosts").(map[string]interface{}),
